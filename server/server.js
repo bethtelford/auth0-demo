@@ -30,7 +30,7 @@ passport.use(new Auth0({
   clientID: process.env.CLIENT_ID,
   clientSecret: process.env.CLIENT_SECRET,
   callbackURL: process.env.CALLBACK_URL,
-  scope: 'open email'
+  scope: 'openid profile email'
 }, function (accessToken, refreshToken, extraParams, profile, done) {
   // 2.2 Callback function that fires once the user has successfully authenticated with Auth0
   server.get('db').check_user(profile.id).then(user => {
