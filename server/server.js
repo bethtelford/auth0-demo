@@ -6,11 +6,18 @@ const express = require('express'),
   passport = require('passport'),
   Auth0 = require('passport-auth0'),
   PORT = 4000;
-const { SESSION_SECRET } = process.env;
+const { 
+  SESSION_SECRET, 
+  DB_CONNECTION, 
+  AUTH_DOMAIN, 
+  CLIENT_ID, 
+  CLIENT_SECRET, 
+  CALLBACK_URL 
+} = process.env;
 
 const server = express();
 
-massive(process.env.DB_CONNECTION).then(db => {
+massive(DB_CONNECTION).then(db => {
   server.set('db', db);
   console.log('db connected')
 })
@@ -26,11 +33,11 @@ server.use(passport.session());
 // 2. Endpoint uses these instructions
 passport.use(new Auth0({
   // 2.1 Configuration object that allows our server to connect to our Auth0 account
-  domain: process.env.AUTH_DOMAIN,
-  clientID: process.env.CLIENT_ID,
-  clientSecret: process.env.CLIENT_SECRET,
-  callbackURL: process.env.CALLBACK_URL,
-  scope: 'openid email profile'
+  domain: AUTH_DOMAIN,
+  clientID: CLIENT_ID,
+  clientSecret: CLIENT_SECRET,
+  callbackURL: CALLBACK_URL,
+  scope: 'openid profile email'
 }, function (accessToken, refreshToken, extraParams, profile, done) {
   // 2.2 Callback function that fires once the user has successfully authenticated with Auth0
   server.get('db').check_user(profile.id).then(user => {
@@ -86,7 +93,7 @@ server.get('/auth/logout', (req, res) => {
   req.session.destroy();
   // 7.2 Then we direct the user to Auth0 to destroy the Auth0 session
   // 7.3 The returnTo query included in the string below determines where the user will be redirected to after destroying the Auth0 session
-  res.redirect(`https://bethebert.auth0.com/v2/logout?returnTo=http%3A%2F%2Flocalhost:3000&client_id=${process.env.CLIENT_ID}`)
+  res.redirect(`https://${AUTH_DOMAIN}/v2/logout?returnTo=http%3A%2F%2Flocalhost:3000&client_id=${CLIENT_ID}`)
 })
 
 server.listen(PORT, _ => console.log(`Housten we have lift off on port ${PORT}`));
